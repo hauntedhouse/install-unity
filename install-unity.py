@@ -28,7 +28,6 @@ import collections
 import ConfigParser
 import datetime
 import dateutil.parser
-import getpass
 import hashlib
 import io
 import json
@@ -593,7 +592,7 @@ def install(version, path, selected):
             
             print 'Installing %s...' % filename
             
-            command = 'echo "%s" | /usr/bin/sudo -S /usr/sbin/installer -pkg %s -target %s -verbose' % (pwd, pipes.quote(package), pipes.quote(args.volume))
+            command = '/usr/sbin/installer -pkg %s -target %s -verbose' % (pipes.quote(package), pipes.quote(args.volume))
             subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as e:
         error('Installation of package "%s" failed: %s' % (filename, e.output))
@@ -669,24 +668,6 @@ if args.discover or args.forget:
 
 if args.list_versions or len(args.versions) == 0:
     operation = 'list-versions'
-
-if not operation or operation == 'install':
-    # Get the root password early so we don't need to ask for it
-    # after the downloads potentially took a long time to finish.
-    # Also, just calling sudo might expire when the install takes
-    # long and the user would have to enter his password again 
-    # and again.
-    print 'Your admin password is required to install the packages'
-    pwd = getpass.getpass('User password:')
-    
-    # Check the root password, so that the user won't only find out
-    # much later if the password is wrong
-    command = 'sudo -k && echo "%s" | /usr/bin/sudo -S /usr/bin/whoami' % pwd
-    result = subprocess.call(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    if result != 0:
-        error('User password invalid or user not an admin')
-    
-    print ''
 
 # Download path
 download_to = args.package_store
